@@ -1,33 +1,16 @@
-HELP.md
-target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+/target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/resources/archetype-resources/**
+!**/src/test/resources/archetype-resources/**
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### IntelliJ IDEA ###
-.idea
-*.iws
+# IDE 配置文件
+.idea/
 *.iml
-*.ipr
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
+.classpath
+.project
+.settings/
 .vscode/
+
+# 操作系统临时文件
+.DS_Store
+Thumbs.db

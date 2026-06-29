@@ -47,6 +47,8 @@ public class UserAuth {
             cookie.setHttpOnly(true);
             cookie.setPath("/");
             response.addCookie(cookie);
+            System.out.println(user);
+    System.out.println("====== [DEBUG] accountId 的值是: " + user.getAccountId());
             return ResponseEntity.ok("登录成功！当前用户账号: " + user.getAccountId());
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
@@ -54,12 +56,13 @@ public class UserAuth {
     }
     
     @PostMapping("/register")
-    public String register(@RequestBody RegisterRequest registerReq,HttpServletResponse response) {
+    public ResponseEntity<String> register(@RequestBody RegisterRequest registerReq,HttpServletResponse response) {
         User registuser = authService.registerUser(registerReq);
         if (registuser != null) {
-            return "注册成功！";
+            return ResponseEntity.ok("注册成功！当前用户账号: " + registuser.getAccountId());
         } else {
-            return "注册失败！";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("注册失败！");
         }
     }
+    
 }
