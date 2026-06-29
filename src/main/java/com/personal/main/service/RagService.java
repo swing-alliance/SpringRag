@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 public class RagService {
     private final RagMapper ragMapper;
     private final EmbeddingService embeddingService;
-    private final MathService mathService;
     private final Gson gson;
     @Transactional
     public void saveKnowledgeChunk(Long userId, String[]fileNames, String[]contents,Boolean useLocalModel,String repoName) {
@@ -36,8 +35,6 @@ public class RagService {
             chunk.setContent(contents[i]);
             chunk.setVectorData(vectorData);
             chunk.setCreateTime(new Date()); // 设置当前时间为创建时间
-
-            // 调用 Mapper 方法保存到数据库
             ragMapper.insertKnowledgeChunk(chunk);
         }
     }
@@ -58,7 +55,7 @@ public class RagService {
             List<Float> chunkVector = gson.fromJson(vectorData, new TypeToken<List<Float>>(){}.getType());
             
             // 5. 计算问题向量与当前知识块向量的余弦相似度
-            double similarity = mathService.cosinesimilarity(q_vector, chunkVector);
+            double similarity = MathService.cosinesimilarity(q_vector, chunkVector);
             
             // 6. 提取 id 并拼接结果。注意：Number 转型可以完美兼容不同数据库驱动对 id 的识别
             Long chunkId = ((Number) chunk.get("id")).longValue();
