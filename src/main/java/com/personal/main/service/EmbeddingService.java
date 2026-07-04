@@ -20,8 +20,9 @@ public class EmbeddingService {
 
     // 远程 OpenAI 模型
     private final EmbeddingModel embeddingModelRemote = OpenAiEmbeddingModel.builder()
-            .apiKey("demo") // TODO: 替换为真实 API Key，建议使用 @Value 注入
+            .apiKey("demo") 
             .modelName("text-embedding-3-small")
+            .dimensions(512)
             .build();
 
     /**
@@ -37,6 +38,7 @@ public class EmbeddingService {
         }
         EmbeddingModel model = useLocal ? embeddingModelLocal : embeddingModelRemote;
         Embedding embedding = model.embed(text).content();
+        
 
         return embedding.vectorAsList();
     }
