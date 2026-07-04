@@ -1,14 +1,17 @@
-package com.personal.main.service; // 换成你自己的包名
+package com.personal.main.service;
 
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.StreamingResponseHandler;
+import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
+import dev.langchain4j.model.output.Response;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import  dev.ai4j.openai4j.OpenAiClient;
-import dev.ai4j.openai4j.chat.ChatCompletionRequest;
-import dev.ai4j.openai4j.chat.SystemMessage;
-import dev.ai4j.openai4j.chat.UserMessage;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
+
+import java.util.Arrays;
 
 @Service
 public class DeepSeekService {
@@ -17,10 +20,12 @@ public class DeepSeekService {
     private String baseUrl;
 
     public Flux<String> streamChat(String apiKey, String message, String refercontext, String systemMessage) {
-        // 1. 创建客户端
-        OpenAiClient client = OpenAiClient.builder()
+        // 1. 初始化 LangChain4j 的流式模型客户端（完全替代 OpenAiClient）
+        OpenAiStreamingChatModel model = OpenAiStreamingChatModel.builder()
                 .baseUrl(baseUrl)
-                .openAiApiKey(apiKey)
+                .apiKey(apiKey)
+                .modelName("deepseek-chat")
+                .temperature(0.3)
                 .build();
 
         // 2. 组装 RAG 提示词
@@ -30,40 +35,37 @@ public class DeepSeekService {
                 【用户问题】:%s
                 """.formatted(refercontext, message);
 
-        // 3. 完美兼容的多角色消息请求体
-        ChatCompletionRequest request = ChatCompletionRequest.builder()
-                .model("deepseek-chat")
-                .temperature(0.3) 
-                .messages(java.util.Arrays.asList(
-                    SystemMessage.from(systemMessage),
-                    UserMessage.from(finalUserContent)
-                ))
-                .build();
-
-        // 4. 创建 Sink 管道
+        // 3. 创建响应式管道 Sink
         Sinks.Many<String> sink = Sinks.many().unicast().onBackpressureBuffer();
 
-        // 5. 执行流式请求
-        try {
-            client.chatCompletion(request)
-                  .onPartialResponse(partialResponse -> {
-                      if (partialResponse.choices() != null && !partialResponse.choices().isEmpty()) {
-                          String content = partialResponse.choices().get(0).delta().content();
-                          if (content != null) {
-                              sink.tryEmitNext(content); 
-                          }
-                      }
-                  })
-                  .onComplete(sink::tryEmitComplete)
-                  .onError(err -> {
-                      System.err.println("DeepSeek 流式调用发生异常: " + err.getMessage());
-                      sink.tryEmitError(err);
-                  })
-                  .execute(); 
-        } catch (Exception e) {
-            sink.tryEmitError(e);
-        }
-        // 返回 Flux，并在前端主动断开时，尝试做清理
+        // 4. 投递多角色消息并执行流式输出
+        model.generate(
+                Arrays.asList(
+                        SystemMessage.from(systemMessage),
+                        UserMessage.from(finalUserContent)
+                ),
+                new StreamingResponseHandler<AiMessage>() {
+                    @Override
+                    public void onNext(String token) {
+                        // 收到一个字，就吐给前端一个字
+                        sink.tryEmitNext(token);
+                    }
+
+                    @Override
+                    public void onComplete(Response<AiMessage> response) {
+                        // 流传输结束
+                        sink.tryEmitComplete();
+                    }
+
+                    @Override
+                    public void onError(Throwable error) {
+                        // 发生异常
+                        System.err.println("DeepSeek 流式调用发生异常: " + error.getMessage());
+                        sink.tryEmitError(error);
+                    }
+                }
+        );
+
         return sink.asFlux();
     }
 }

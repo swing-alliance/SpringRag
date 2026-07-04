@@ -3,13 +3,15 @@ package com.personal.main.service;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
-import java.util.Map;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.personal.main.mapper.RagMapper;
 import com.personal.main.model.KnowledgeChunk;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 @Service
@@ -70,7 +72,7 @@ public class RagService {
         ragMapper.deleteByUserIdAndRepoName(userId, repoName);
     }
     public void deleteKnowledgeChunkById(Long userId) {
-        ragMapper.deleteById(userId);
+        ragMapper.deleteAllChunkById(userId);
     }
 
 }

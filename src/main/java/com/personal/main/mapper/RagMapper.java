@@ -31,7 +31,7 @@ public interface RagMapper {
 
 
     @Delete("DELETE FROM knowledge_chunk WHERE id = #{id}")
-    int deleteChunkById(@Param("id") Long id);
+    int deleteAllChunkById(@Param("id") Long id);
 
     
 
