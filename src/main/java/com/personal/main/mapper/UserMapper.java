@@ -2,6 +2,7 @@ package com.personal.main.mapper;
 
 import java.util.Optional;
 
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
@@ -45,6 +46,10 @@ public interface UserMapper {
             "is_active = #{isActive}, update_time = CURRENT_TIMESTAMP " +
             "WHERE user_id = #{userId} AND platform_source = #{platformSource}")
     int updateUserConfigApi(UserConfig userConfig);
+
+    //4. 根据 user_id 和 platform_source 删除配置
+    @Delete("DELETE FROM user_config WHERE user_id = #{userId} AND platform_source = #{platformSource}")
+    int deleteUserConfigApi(@Param("userId") Long userId, @Param("platformSource") String platformSource);
 
     
 

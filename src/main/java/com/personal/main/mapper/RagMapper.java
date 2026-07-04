@@ -33,7 +33,25 @@ public interface RagMapper {
     @Delete("DELETE FROM knowledge_chunk WHERE id = #{id}")
     int deleteAllChunkById(@Param("id") Long id);
 
-    
+    @Select("""
+        <script>
+        SELECT * FROM knowledge_chunk 
+        <where>
+            <choose>
+                <when test="ids != null and ids.size() > 0">
+                    id IN 
+                    <foreach collection='ids' item='item' open='(' separator=',' close=')'>
+                        #{item}
+                    </foreach>
+                </when>
+                <otherwise>
+                    1 = 0
+                </otherwise>
+            </choose>
+        </where>
+        </script>
+        """)
+List<KnowledgeChunk> selectChunksByIds(@Param("ids") List<Long> ids);
 
 
 

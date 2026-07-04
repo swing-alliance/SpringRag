@@ -10,6 +10,7 @@ import com.personal.main.dto.LoginRequest;
 import com.personal.main.dto.RegisterRequest;
 import com.personal.main.mapper.UserMapper;
 import com.personal.main.model.User;
+import com.personal.main.model.UserConfig;
 import com.personal.main.utils.RandomUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -53,5 +54,13 @@ public class AuthService {
     }
     public void logout(String token) {
         MySessionContext.removeUser(token);
+    }
+
+    public String getUserConfigApiKey(Long userId, String platformSource) {
+        Optional<UserConfig> apiKeyOptional = userMapper.selectUserConfigByUserIdAndPlatformSource(userId, platformSource);
+        if (apiKeyOptional.isEmpty()) {
+            throw new RuntimeException("未找到对应的用户配置！");
+        }
+        return apiKeyOptional.get().getApiKey();
     }
 }

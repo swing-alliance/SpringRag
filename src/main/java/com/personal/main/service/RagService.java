@@ -2,8 +2,11 @@ package com.personal.main.service;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -40,33 +43,37 @@ public class RagService {
             ragMapper.insertKnowledgeChunk(chunk);
         }
     }
-    public String answerquestion(String question,Long userId,String repoName) {
-        // 1. 获取当前问题的向量表示
-        List<Float> q_vector = embeddingService.getEmbedding(question, true); 
-        
-        // 2. 从数据库捞出所有的知识块原始数据 (包含 id 和 vector_data JSON 串)
-        List<Map<String, Object>> chunks = ragMapper.selectRawMaps(userId, repoName); 
-        
-        // 3. 使用 StringBuilder 替代 String 拼接，提升循环内拼接的效率
-        StringBuilder answerBuilder = new StringBuilder(); 
-        // 4. 遍历计算相似度
+    public Map<Long, Float> getIndexMap(String question, Long userId, String repoName, Float referratio) {
+        List<Float> q_vector = embeddingService.getEmbedding(question, true);
+        List<Map<String, Object>> chunks = ragMapper.selectRawMaps(userId, repoName);
+        Map<Long, Float> chunkSimilarityMap = new HashMap<>();
         for (Map<String, Object> chunk : chunks) {
             String vectorData = (String) chunk.get("vector_data");
-            
-            //核心补全：使用 Gson 将数据库里的 JSON 字符串完美转回 List<Float>
-            List<Float> chunkVector = gson.fromJson(vectorData, new TypeToken<List<Float>>(){}.getType());
-            
-            // 5. 计算问题向量与当前知识块向量的余弦相似度
+            List<Float> chunkVector = gson.fromJson(vectorData, new TypeToken<List<Float>>() {}.getType());
             double similarity = MathService.cosinesimilarity(q_vector, chunkVector);
-            
-            // 6. 提取 id 并拼接结果。注意：Number 转型可以完美兼容不同数据库驱动对 id 的识别
             Long chunkId = ((Number) chunk.get("id")).longValue();
-            answerBuilder.append("与块 [").append(chunkId).append("] 相似度: ").append(similarity).append("\n");
-            System.out.println("与块 [" + chunkId + "] 相似度: " + similarity);
+            chunkSimilarityMap.put(chunkId, (float) similarity);
         }
-        return answerBuilder.toString();
-    }
+        return chunkSimilarityMap.entrySet().stream()
+        .filter(e -> e.getValue() >= referratio)
+        // 降序排序：e2 比较 e1
+        .sorted((e1, e2) -> Float.compare(e2.getValue(), e1.getValue())) 
+        .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                Map.Entry::getValue,
+                (oldVal, newVal) -> oldVal,
+                LinkedHashMap::new // 必须显式指定 LinkedHashMap 来维持插入顺序
+        ));}
 
+    public String getKnowledgeContentByIds(List<Long> chunkIds) {
+        List<KnowledgeChunk> chunks = ragMapper.selectChunksByIds(chunkIds);
+        StringBuilder contentBuilder = new StringBuilder();
+        for (KnowledgeChunk chunk : chunks) {
+            contentBuilder.append("文件名: ").append(chunk.getFileName()).append("\n");
+            contentBuilder.append("内容: ").append(chunk.getContent()).append("\n\n");
+        }
+        return contentBuilder.toString();
+    }
 
     public void deleteKnowledgeChunkByRepo(Long userId, String repoName) {
         ragMapper.deleteByUserIdAndRepoName(userId, repoName);
@@ -74,5 +81,6 @@ public class RagService {
     public void deleteKnowledgeChunkById(Long userId) {
         ragMapper.deleteAllChunkById(userId);
     }
+
 
 }

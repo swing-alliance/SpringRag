@@ -1,17 +1,18 @@
 package com.personal.main.service;
 
+import java.util.Arrays;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.StreamingResponseHandler;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import dev.langchain4j.model.output.Response;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
-
-import java.util.Arrays;
 
 @Service
 public class DeepSeekService {
@@ -19,7 +20,7 @@ public class DeepSeekService {
     @Value("${openai4j.base-url}")
     private String baseUrl;
 
-    public Flux<String> streamChat(String apiKey, String message, String refercontext, String systemMessage) {
+    public Flux<String> streamChat(String apiKey, String message, String refercontext, String systemMessage,Boolean userag) {
         // 1. 初始化 LangChain4j 的流式模型客户端（完全替代 OpenAiClient）
         OpenAiStreamingChatModel model = OpenAiStreamingChatModel.builder()
                 .baseUrl(baseUrl)
@@ -34,6 +35,9 @@ public class DeepSeekService {
                 【已知信息】:%s
                 【用户问题】:%s
                 """.formatted(refercontext, message);
+        if(userag == false) {
+            finalUserContent = message;
+        }
 
         // 3. 创建响应式管道 Sink
         Sinks.Many<String> sink = Sinks.many().unicast().onBackpressureBuffer();

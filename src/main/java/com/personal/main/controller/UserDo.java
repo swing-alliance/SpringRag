@@ -7,9 +7,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.personal.main.dto.CreateChunkRequest;
+import com.personal.main.dto.UserConfigRequest;
 import com.personal.main.service.AuthService;
 import com.personal.main.service.RagService;
-import com.personal.main.dto.RagRequest;
+import com.personal.main.service.UserDoService;
+
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -17,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 public class UserDo {
     private final AuthService authService;
     private final RagService ragService;
+    private final UserDoService userDoService;
     @GetMapping("/mainpage")
     public String mainPage(@CookieValue(value = "user_session", defaultValue = "") String token) {
         try {
@@ -50,24 +53,51 @@ public class UserDo {
         } catch (RuntimeException e) {
             return ResponseEntity.status(400).body("知识块删除失败: " + e.getMessage()).toString();
         }}
-
-    @PostMapping("/useraskrag")
-    public ResponseEntity<String> askRag(
-        @CookieValue(value = "user_session", defaultValue = "") String token,
-        @RequestBody RagRequest request // 🎯 用一个 @RequestBody 接收整块 JSON 对象
-    ) {
+    //创建配置
+    @PostMapping("/usercreateconfig")
+    public String createUserConfig(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody UserConfigRequest.CreateUserConfigRequest request) {
         try {
-            // 从 Token 中解析出用户 ID
             Long userId = authService.authCookie(token);
-            
-            // 从 request 对象中安全地获取字段（注意前端传的是 reponame，全小写）
-            String answer = ragService.answerquestion(request.question(), userId, request.reponame());
-            
-            // 💎 正确姿势：去掉 .toString()，直接返回 ResponseEntity 对象
-            return ResponseEntity.ok(answer);
+            userDoService.createuserconfig(userId, request.platformSource(), request.apiKey(), request.baseUrl());
+            return ResponseEntity.ok("用户配置创建成功！当前用户 ID: " + userId).toString();
         } catch (RuntimeException e) {
-            // 💎 失败时同样直接返回对象，让 Spring 自动下发标准的 400 状态码
-            return ResponseEntity.status(400).body("问题处理失败: " + e.getMessage());
+            return ResponseEntity.status(400).body("用户配置创建失败: " + e.getMessage()).toString();
         }
     }
+    //更新配置
+    @PostMapping("/userupdateconfig")
+    public String updateUserConfig(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody UserConfigRequest.UpdateUserConfigRequest request) {
+        try {
+            Long userId = authService.authCookie(token);
+            userDoService.updateuserconfig(userId, request.platformSource(), request.apiKey(), request.baseUrl(), request.isActive());
+            return ResponseEntity.ok("用户配置更新成功！当前用户 ID: " + userId).toString();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body("用户配置更新失败: " + e.getMessage()).toString();
+        }
+    }    
+    //获取配置
+    @PostMapping("/usergetconfig")
+    public String getUserConfig(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody UserConfigRequest.GetUserConfigRequest request) {
+        try {
+            Long userId = authService.authCookie(token);
+            var config = userDoService.getuserconfig(userId, request.platformSource());
+            return ResponseEntity.ok("用户配置获取成功！当前用户 ID: " + userId + ", 配置: " + config).toString();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body("用户配置获取失败: " + e.getMessage()).toString();
+        }
+    }
+    //删除配置
+    @PostMapping("/userdeleteconfig")
+    public String deleteUserConfig(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody UserConfigRequest.DeleteUserConfigRequest request) {
+        try {
+            Long userId = authService.authCookie(token);
+            userDoService.deleteuserconfig(userId, request.platformSource());
+            return ResponseEntity.ok("用户配置删除成功！当前用户 ID: " + userId).toString();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body("用户配置删除失败: " + e.getMessage()).toString();
+        }
+    }
+
+
+
 }
