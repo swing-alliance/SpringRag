@@ -44,26 +44,32 @@ public class RagService {
         }
     }
     public Map<Long, Float> getIndexMap(String question, Long userId, String repoName, Float referratio) {
-        List<Float> q_vector = embeddingService.getEmbedding(question, true);
-        List<Map<String, Object>> chunks = ragMapper.selectRawMaps(userId, repoName);
-        Map<Long, Float> chunkSimilarityMap = new HashMap<>();
-        for (Map<String, Object> chunk : chunks) {
-            String vectorData = (String) chunk.get("vector_data");
-            List<Float> chunkVector = gson.fromJson(vectorData, new TypeToken<List<Float>>() {}.getType());
-            double similarity = MathService.cosinesimilarity(q_vector, chunkVector);
-            Long chunkId = ((Number) chunk.get("id")).longValue();
-            chunkSimilarityMap.put(chunkId, (float) similarity);
-        }
-        return chunkSimilarityMap.entrySet().stream()
-        .filter(e -> e.getValue() >= referratio)
-        // 降序排序：e2 比较 e1
-        .sorted((e1, e2) -> Float.compare(e2.getValue(), e1.getValue())) 
-        .collect(Collectors.toMap(
-                Map.Entry::getKey,
-                Map.Entry::getValue,
-                (oldVal, newVal) -> oldVal,
-                LinkedHashMap::new // 必须显式指定 LinkedHashMap 来维持插入顺序
-        ));}
+    List<Float> q_vector = embeddingService.getEmbedding(question, true);
+    List<Map<String, Object>> chunks = ragMapper.selectRawMaps(userId, repoName);
+    Map<Long, Float> chunkSimilarityMap = new HashMap<>();
+    for (Map<String, Object> chunk : chunks) {
+        String vectorData = (String) chunk.get("vector_data");
+        List<Float> chunkVector = gson.fromJson(vectorData, new TypeToken<List<Float>>() {}.getType());
+        double similarity = MathService.cosinesimilarity(q_vector, chunkVector);
+        Long chunkId = ((Number) chunk.get("id")).longValue();
+        chunkSimilarityMap.put(chunkId, (float) similarity);
+    }
+    int totalSize = chunkSimilarityMap.size();
+    long limitSize = (referratio != null && referratio > 0) ? (long) Math.ceil(totalSize / referratio) : totalSize;
+    if (limitSize <= 0 && totalSize > 0) {
+        limitSize = 1;
+    }
+    return chunkSimilarityMap.entrySet().stream()
+            // 依然先按相似度从高到低降序排序
+            .sorted((e1, e2) -> Float.compare(e2.getValue(), e1.getValue())) 
+            // 【核心修正】根据你说的 1/ratio 数量截取，只留最高的这部分
+            .limit(limitSize) 
+            .collect(Collectors.toMap(
+                    Map.Entry::getKey,
+                    Map.Entry::getValue,
+                    (oldVal, newVal) -> oldVal,
+                    LinkedHashMap::new
+            ));}
 
     public String getKnowledgeContentByIds(List<Long> chunkIds) {
         List<KnowledgeChunk> chunks = ragMapper.selectChunksByIds(chunkIds);

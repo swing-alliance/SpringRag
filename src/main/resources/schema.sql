@@ -35,16 +35,33 @@ CREATE TABLE `user_config` (
     INDEX `idx_user_platform` (`user_id`, `platform_source`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户API密钥配置表';
 
+CREATE TABLE `chat_room` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '聊天室主键ID',
+    `user_id` BIGINT NOT NULL COMMENT '创建该聊天室的用户ID',
+    `room_name` VARCHAR(100) NOT NULL COMMENT '聊天室名称',
+    `repo_name` VARCHAR(100) NOT NULL COMMENT '当前绑定的RAG知识库/文档名称',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间（如修改知识库或房间名）',
+    -- 普通索引
+    INDEX `idx_user_id` (`user_id`) COMMENT '方便查询用户的所有聊天室',
+    -- 添加指向 users 表的外键约束
+    CONSTRAINT `fk_chat_room_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='聊天室表';
+
 
 -- 创建 chat_message 表
 CREATE TABLE `chat_message` (
     `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '聊天记录主键ID',
+    `room_id` BIGINT NOT NULL COMMENT '关联的聊天室ID',
     `user_id` BIGINT NOT NULL COMMENT '关联的用户ID',
-    `repo_name` VARCHAR(100) NOT NULL COMMENT '知识库名称',
-    `room_name` VARCHAR(100) NOT NULL COMMENT '聊天室名称',
-    `user_message` TEXT NOT NULL COMMENT '用户提问',
-    `ai_message` TEXT DEFAULT NULL COMMENT 'AI回复',
-    `system_message` TEXT DEFAULT NULL COMMENT '系统提示词',
+    `sender_type` TINYINT NOT NULL DEFAULT 1 COMMENT '发送者类型：1-用户(User), 2-AI助手(Assistant), 3-系统通知(System)',
+    `content` TEXT NOT NULL COMMENT '消息内容（用户提问或AI回复的具体文本）',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '对话时间',
-    INDEX `idx_user_repo_room` (`user_id`, `repo_name`, `room_name`)
+    -- 普通索引
+    INDEX `idx_room_id` (`room_id`) COMMENT '用于快速加载聊天室的历史记录',
+    INDEX `idx_user_id` (`user_id`) COMMENT '方便单表按用户查询或统计消息',
+    -- 添加指向 chat_room 表的外键约束
+    CONSTRAINT `fk_chat_message_room` FOREIGN KEY (`room_id`) REFERENCES `chat_room` (`id`) ON DELETE CASCADE,
+    -- 添加指向 users 表的外键约束
+    CONSTRAINT `fk_chat_message_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='人机聊天记录表';

@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import com.personal.main.mapper.AiChatMapper;
 import com.personal.main.mapper.RagMapper;
 import com.personal.main.mapper.UserMapper;
 import com.personal.main.model.KnowledgeChunk;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 public class UserDoService {
     private final RagMapper ragMapper;
     private final UserMapper userMapper;
+    private final AiChatMapper aiChatMapper;
     private final EmbeddingService embeddingService;
     public void saveKnowledgeChunk(Long userId, String[]fileNames, String[]contents,Boolean useLocalModel,String repoName) {
         if (fileNames.length != contents.length) {
@@ -87,6 +89,7 @@ public class UserDoService {
         }
     }
 
+    
     
 
 }

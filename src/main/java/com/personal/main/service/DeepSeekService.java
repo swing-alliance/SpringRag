@@ -20,7 +20,7 @@ public class DeepSeekService {
     @Value("${openai4j.base-url}")
     private String baseUrl;
 
-    public Flux<String> streamChat(String apiKey, String message, String refercontext, String systemMessage,Boolean userag) {
+    public Flux<String> streamChat(String apiKey, String message,String context, String refercontext, String systemMessage,Boolean userag) {
         // 1. 初始化 LangChain4j 的流式模型客户端（完全替代 OpenAiClient）
         OpenAiStreamingChatModel model = OpenAiStreamingChatModel.builder()
                 .baseUrl(baseUrl)
@@ -33,8 +33,9 @@ public class DeepSeekService {
         String finalUserContent = """
                 请结合以下检索到的【已知信息】来回答用户的问题。如果已知信息中没有提到，请委婉拒绝，不要胡乱编造。
                 【已知信息】:%s
+                【历史对话上下文】:%s
                 【用户问题】:%s
-                """.formatted(refercontext, message);
+                """.formatted(refercontext, context, message);
         if(userag == false) {
             finalUserContent = message;
         }

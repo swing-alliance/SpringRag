@@ -7,7 +7,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.personal.main.dto.CreateChunkRequest;
+import com.personal.main.dto.UserChatAiRequest;
 import com.personal.main.dto.UserConfigRequest;
+import com.personal.main.model.ChatRoom;
+import com.personal.main.service.AiChatRoomService;
 import com.personal.main.service.AuthService;
 import com.personal.main.service.RagService;
 import com.personal.main.service.UserDoService;
@@ -17,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 public class UserDo {
+    private final AiChatRoomService aiChatRoomService;
     private final AuthService authService;
     private final RagService ragService;
     private final UserDoService userDoService;
@@ -97,6 +101,31 @@ public class UserDo {
             return ResponseEntity.status(400).body("用户配置删除失败: " + e.getMessage()).toString();
         }
     }
+    @PostMapping("/usercreateroom")
+    public String createroom(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody UserChatAiRequest.UserCreateRoom request) {
+        try {
+            Long userId = authService.authCookie(token);
+            ChatRoom chatRoom = new ChatRoom();
+            chatRoom.setRoomName(request.roomName());
+            chatRoom.setRepoName(request.repoName());
+            chatRoom.setUserId(userId);
+            aiChatRoomService.createaichatroom(chatRoom);
+            return ResponseEntity.ok("聊天室创建成功！当前用户 ID: " + userId).toString();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body("聊天室创建失败: " + e.getMessage()).toString();
+        }}
+    @PostMapping("/userdeleteroom")
+    public String deleteroom(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody UserChatAiRequest.UserDeleteRoom request) {
+        try {
+            Long userId = authService.authCookie(token);
+            aiChatRoomService.deleteaichatroom(request.roomid(), userId);
+            return ResponseEntity.ok("聊天室删除成功！当前用户 ID: " + userId).toString();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body("聊天室删除失败: " + e.getMessage()).toString();
+        }}
+    
+    
+        
 
 
 
