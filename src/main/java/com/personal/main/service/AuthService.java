@@ -63,4 +63,8 @@ public class AuthService {
         }
         return apiKeyOptional.get().getApiKey();
     }
+
+    public Optional<User> getUserById(Long userId) {
+        return userMapper.selectById(userId);
+    }
 }

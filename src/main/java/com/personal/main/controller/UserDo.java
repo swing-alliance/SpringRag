@@ -1,4 +1,7 @@
 package com.personal.main.controller;
+import java.util.Optional;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -6,10 +9,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.personal.main.common.Result;
 import com.personal.main.dto.CreateChunkRequest;
 import com.personal.main.dto.UserChatAiRequest;
 import com.personal.main.dto.UserConfigRequest;
 import com.personal.main.model.ChatRoom;
+import com.personal.main.model.User;
 import com.personal.main.service.AiChatRoomService;
 import com.personal.main.service.AuthService;
 import com.personal.main.service.RagService;
@@ -24,16 +29,21 @@ public class UserDo {
     private final AuthService authService;
     private final RagService ragService;
     private final UserDoService userDoService;
-    @GetMapping("/mainpage")
-    public String mainPage(@CookieValue(value = "user_session", defaultValue = "") String token) {
+    @GetMapping("/api/mainpage")
+    public ResponseEntity<Result<Boolean>> mainPage(@CookieValue(value = "user_session", defaultValue = "") String token) {
         try {
             Long userId = authService.authCookie(token);
-            return "欢迎访问主页面！当前用户 ID: " + userId;
+            Optional<User> user = authService.getUserById(userId);
+            if (user.isPresent()) {
+                return ResponseEntity.ok(Result.success(user.get().getUsername(),true));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Result.error(404, "用户不存在"));
+            }
         } catch (RuntimeException e) {
-            return e.getMessage();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Result.error(404,e.getMessage()));
         }
     }
-    @PostMapping("/usercreatechunk")
+    @PostMapping("/api/usercreatechunk")
     public String postMethodName(@CookieValue(value = "user_session", defaultValue = "") String token,@RequestBody CreateChunkRequest createChunkReq) {
         try {
             Long userId = authService.authCookie(token);
@@ -48,7 +58,7 @@ public class UserDo {
         }
     }
 
-    @PostMapping("/userdeletechunkbyrepo")
+    @PostMapping("/api/userdeletechunkbyrepo")
     public String deleteUserChunk(@CookieValue(value = "user_session", defaultValue = "") String token,@RequestBody String repoName) {
         try {
             Long userId = authService.authCookie(token);
@@ -58,7 +68,7 @@ public class UserDo {
             return ResponseEntity.status(400).body("知识块删除失败: " + e.getMessage()).toString();
         }}
     //创建配置
-    @PostMapping("/usercreateconfig")
+    @PostMapping("/api/usercreateconfig")
     public String createUserConfig(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody UserConfigRequest.CreateUserConfigRequest request) {
         try {
             Long userId = authService.authCookie(token);
@@ -69,7 +79,7 @@ public class UserDo {
         }
     }
     //更新配置
-    @PostMapping("/userupdateconfig")
+    @PostMapping("/api/userupdateconfig")
     public String updateUserConfig(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody UserConfigRequest.UpdateUserConfigRequest request) {
         try {
             Long userId = authService.authCookie(token);
@@ -80,7 +90,7 @@ public class UserDo {
         }
     }    
     //获取配置
-    @PostMapping("/usergetconfig")
+    @PostMapping("/api/usergetconfig")
     public String getUserConfig(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody UserConfigRequest.GetUserConfigRequest request) {
         try {
             Long userId = authService.authCookie(token);
@@ -91,7 +101,7 @@ public class UserDo {
         }
     }
     //删除配置
-    @PostMapping("/userdeleteconfig")
+    @PostMapping("/api/userdeleteconfig")
     public String deleteUserConfig(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody UserConfigRequest.DeleteUserConfigRequest request) {
         try {
             Long userId = authService.authCookie(token);
@@ -101,7 +111,7 @@ public class UserDo {
             return ResponseEntity.status(400).body("用户配置删除失败: " + e.getMessage()).toString();
         }
     }
-    @PostMapping("/usercreateroom")
+    @PostMapping("/api/usercreateroom")
     public String createroom(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody UserChatAiRequest.UserCreateRoom request) {
         try {
             Long userId = authService.authCookie(token);
@@ -114,7 +124,7 @@ public class UserDo {
         } catch (RuntimeException e) {
             return ResponseEntity.status(400).body("聊天室创建失败: " + e.getMessage()).toString();
         }}
-    @PostMapping("/userdeleteroom")
+    @PostMapping("/api/userdeleteroom")
     public String deleteroom(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody UserChatAiRequest.UserDeleteRoom request) {
         try {
             Long userId = authService.authCookie(token);

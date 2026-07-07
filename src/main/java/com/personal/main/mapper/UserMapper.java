@@ -18,6 +18,10 @@ public interface UserMapper {
     @Select("SELECT * FROM users WHERE username = #{username} LIMIT 1")
     Optional<User> selectByUsername(String username);
 
+    @Select("SELECT * FROM users WHERE id = #{id} LIMIT 1")
+    Optional<User> selectById(Long id);
+
+
     @Insert("INSERT INTO users (username, password, account_id) VALUES (#{username}, #{password}, #{accountId})")
     @Options(useGeneratedKeys = true, keyProperty = "id") 
     int insert(User user);

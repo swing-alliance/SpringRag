@@ -25,7 +25,7 @@ public class DeepSeek {
     private final AuthService authService;
     private final RagService ragService;
     private final AiChatRoomService aiChatRoomService;
-    @PostMapping(value = "/airesponse", produces = "text/event-stream;charset=UTF-8")
+    @PostMapping(value = "/api/airesponse", produces = "text/event-stream;charset=UTF-8")
     public Flux<String> streamChat(
             @CookieValue(value = "user_session", defaultValue = "") String token,
             @RequestBody UserChatAiRequest.UserChatAi request) {
