@@ -10,6 +10,9 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
+
+import com.personal.main.dto.AboutChunkRequest.EditChunk;
 
 import com.personal.main.model.KnowledgeChunk;
 @Mapper
@@ -55,4 +58,15 @@ List<KnowledgeChunk> selectChunksByIds(@Param("ids") List<Long> ids);
 
 
 
+        @Select("SELECT id, repo_name, user_id, file_name, content, vector_data, create_time " +
+        "FROM knowledge_chunk WHERE user_id = #{userId}")
+        List<KnowledgeChunk> getChunksById(@Param("userId") Long userId);
+
+
+        @Update("UPDATE knowledge_chunk SET " +
+        "content = #{content}, " +
+        "file_name = #{fileName}, " +
+        "vector_data = #{vectorData, typeHandler=com.personal.main.handler.ListFloatJsonHandler} " +
+        "WHERE id = #{id}")
+        int updateChunk(EditChunk chunk);
 }

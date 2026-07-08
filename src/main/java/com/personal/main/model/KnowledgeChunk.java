@@ -12,7 +12,7 @@ public class KnowledgeChunk {
     private String fileName;    // 对应 file_name
     private String content;
     private String vectorData;  // 对应数据库的 text 字段 (JSON 字符串)
-    private List<Float> vector; 
+
     
     private Date createTime;    // 对应 create_time
     public Long getId() {return id;}
@@ -27,8 +27,7 @@ public class KnowledgeChunk {
     public void setContent(String content) {this.content = content;}
     public String getVectorData() {return vectorData;}
     public void setVectorData(String vectorData) {this.vectorData = vectorData;}
-    public List<Float> getVector() {return vector;}
-    public void setVector(List<Float> vector) {this.vector = vector;}
+
     public Date getCreateTime() {return createTime;}
     public void setCreateTime(Date createTime) {this.createTime = createTime;}
 }

@@ -14,7 +14,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.personal.main.mapper.RagMapper;
 import com.personal.main.model.KnowledgeChunk;
-
+import com.personal.main.dto.AboutChunkRequest.EditChunk;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 @Service
@@ -71,6 +71,7 @@ public class RagService {
                     LinkedHashMap::new
             ));}
 
+    //通过多个chunkid，得到相关文档
     public String getKnowledgeContentByIds(List<Long> chunkIds) {
         List<KnowledgeChunk> chunks = ragMapper.selectChunksByIds(chunkIds);
         StringBuilder contentBuilder = new StringBuilder();
@@ -88,5 +89,23 @@ public class RagService {
         ragMapper.deleteAllChunkById(userId);
     }
 
+    public List<KnowledgeChunk> getChunksById(Long userId)
+    {
+        return ragMapper.getChunksById(userId);
+    }
+
+
+    public void updateChunk(EditChunk chunk) {
+        try{
+        List<Float> vectorData = embeddingService.getEmbedding(chunk.fileName(), true); // 检查内容是否为空
+        if (vectorData == null || vectorData.isEmpty()) {
+            throw new IllegalArgumentException("文件内容不能为空");
+        }
+        EditChunk newChunk = new EditChunk(chunk.id(), chunk.fileName(), chunk.content(), vectorData); // 创建新的EditChunk对象
+        ragMapper.updateChunk(newChunk);
+        }catch(Exception e){
+            throw new RuntimeException("更新chunk失败", e);
+        }
+    }
 
 }

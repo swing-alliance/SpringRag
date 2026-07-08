@@ -97,4 +97,8 @@ public interface AiChatMapper {
      */
     @Select("SELECT repo_name FROM chat_room WHERE id = #{roomId} AND user_id = #{userId}")
     String getRepoNameByRoomId(@Param("roomId") Long roomId, @Param("userId") Long userId);
+
+
+        
+
 }

@@ -19,7 +19,7 @@ import com.personal.main.service.AiChatRoomService;
 import com.personal.main.service.AuthService;
 import com.personal.main.service.RagService;
 import com.personal.main.service.UserDoService;
-
+import com.personal.main.dto.AboutChunkRequest.EditChunk;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -29,7 +29,7 @@ public class UserDo {
     private final AuthService authService;
     private final RagService ragService;
     private final UserDoService userDoService;
-    @GetMapping("/api/mainpage")
+    @GetMapping("/api/getusername")
     public ResponseEntity<Result<Boolean>> mainPage(@CookieValue(value = "user_session", defaultValue = "") String token) {
         try {
             Long userId = authService.authCookie(token);
@@ -37,14 +37,14 @@ public class UserDo {
             if (user.isPresent()) {
                 return ResponseEntity.ok(Result.success(user.get().getUsername(),true));
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Result.error(404, "用户不存在"));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Result.error(404, "用户不存在,请重新登录"));
             }
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Result.error(404,e.getMessage()));
         }
     }
     @PostMapping("/api/usercreatechunk")
-    public String postMethodName(@CookieValue(value = "user_session", defaultValue = "") String token,@RequestBody CreateChunkRequest createChunkReq) {
+    public ResponseEntity<Result<String>> postMethodName(@CookieValue(value = "user_session", defaultValue = "") String token,@RequestBody CreateChunkRequest createChunkReq) {
         try {
             Long userId = authService.authCookie(token);
             String[] fileNames = createChunkReq.fileName();
@@ -52,9 +52,9 @@ public class UserDo {
             String repoName = createChunkReq.repoName();
             Boolean useLocalModel = createChunkReq.useLocalModel();
             ragService.saveKnowledgeChunk(userId, fileNames, contents, useLocalModel, repoName);
-            return ResponseEntity.ok("知识块保存成功！当前用户 ID: " + userId).toString();
+            return ResponseEntity.ok(Result.success("知识块保存成功！当前用户 ID: ",userId.toString()));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(400).body("知识块保存失败: " + e.getMessage()).toString();
+            return ResponseEntity.status(400).body(Result.error(400, e.getMessage()));
         }
     }
 
@@ -134,7 +134,15 @@ public class UserDo {
             return ResponseEntity.status(400).body("聊天室删除失败: " + e.getMessage()).toString();
         }}
     
-    
+    @PostMapping("/api/usereditchunk")
+    public ResponseEntity<Result<Long>> editchunk(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody EditChunk editChunk) {
+        try {
+            Long userId = authService.authCookie(token);
+            ragService.updateChunk(editChunk);
+            return ResponseEntity.ok(Result.success("知识块更新成功！" , userId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body(Result.error(400, e.getMessage()));
+        }}
         
 
 

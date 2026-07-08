@@ -4,11 +4,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import com.personal.main.common.Result;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
+import com.personal.main.common.Result;
 import com.personal.main.dto.LoginRequest;
 import com.personal.main.dto.RegisterRequest;
 import com.personal.main.model.User;
@@ -17,25 +20,24 @@ import com.personal.main.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-
+import com.personal.main.common.Result;
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
 public class UserAuth {
     private final AuthService authService;
     @PostMapping("/api/logout")
-    public ResponseEntity<String> logout(@CookieValue(value = "user_session", defaultValue = "") String token, HttpServletResponse response) {
+    public ResponseEntity<Result<Boolean>> logout(@CookieValue(value = "user_session", defaultValue = "") String token, HttpServletResponse response) {
         try {
             authService.authCookie(token);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Result.error(401, e.getMessage()));
         }
         authService.logout(token);
         Cookie cookie = new Cookie("user_session", "");
         cookie.setMaxAge(0);
         cookie.setPath("/"); 
         response.addCookie(cookie);
-        return ResponseEntity.ok("您已成功退出登录！");
+        return ResponseEntity.ok(Result.success(true));
     }
     @PostMapping("/api/login")
     public ResponseEntity<Result<Map<String, Object>>> login(@RequestBody LoginRequest loginReq, HttpServletResponse response) {
