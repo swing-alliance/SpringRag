@@ -21,7 +21,8 @@ import com.personal.main.service.RagService;
 import com.personal.main.service.UserDoService;
 import com.personal.main.dto.AboutChunkRequest.EditChunk;
 import lombok.RequiredArgsConstructor;
-
+import com.personal.main.dto.AboutChunkRequest.DeleteChunk;
+import com.personal.main.dto.AboutChunkRequest.deleterepo;
 @RestController
 @RequiredArgsConstructor
 public class UserDo {
@@ -58,15 +59,7 @@ public class UserDo {
         }
     }
 
-    @PostMapping("/api/userdeletechunkbyrepo")
-    public String deleteUserChunk(@CookieValue(value = "user_session", defaultValue = "") String token,@RequestBody String repoName) {
-        try {
-            Long userId = authService.authCookie(token);
-            ragService.deleteKnowledgeChunkByRepo(userId, repoName);
-            return ResponseEntity.ok("知识块删除成功！当前用户 ID: " + userId).toString();
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(400).body("知识块删除失败: " + e.getMessage()).toString();
-        }}
+
     //创建配置
     @PostMapping("/api/usercreateconfig")
     public String createUserConfig(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody UserConfigRequest.CreateUserConfigRequest request) {
@@ -143,7 +136,28 @@ public class UserDo {
         } catch (RuntimeException e) {
             return ResponseEntity.status(400).body(Result.error(400, e.getMessage()));
         }}
+
+
+    @PostMapping("/api/userdeletechunk")
+    public ResponseEntity<Result<Long>> deletechunk(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody DeleteChunk deleteChunk) {
+        try {
+            Long userId = authService.authCookie(token);
+            ragService.deleteKnowledgeChunkById(deleteChunk.chunkId(), userId);
+            return ResponseEntity.ok(Result.success("知识块删除成功！" , deleteChunk.chunkId()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body(Result.error(400, e.getMessage()));
+        }}
         
+
+    @PostMapping("/api/userdeleterepo")
+    public ResponseEntity<Result<String>> deleterepo(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody deleterepo deleterepo) {
+        try {
+            Long userId = authService.authCookie(token);
+            ragService.deleteKnowledgeChunkByRepo(userId, deleterepo.repoName());
+            return ResponseEntity.ok(Result.success("知识库删除成功！" , deleterepo.repoName()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body(Result.error(400, e.getMessage()));
+        }}
 
 
 

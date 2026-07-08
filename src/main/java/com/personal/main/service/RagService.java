@@ -83,10 +83,10 @@ public class RagService {
     }
 
     public void deleteKnowledgeChunkByRepo(Long userId, String repoName) {
-        ragMapper.deleteByUserIdAndRepoName(userId, repoName);
+        ragMapper.deleteChunkByUserIdAndRepoName(userId, repoName);
     }
-    public void deleteKnowledgeChunkById(Long userId) {
-        ragMapper.deleteAllChunkById(userId);
+    public void deleteKnowledgeChunkById(Long chunkId,Long userId) {
+        ragMapper.deleteChunkById(chunkId, userId);
     }
 
     public List<KnowledgeChunk> getChunksById(Long userId)

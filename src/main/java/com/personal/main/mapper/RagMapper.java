@@ -26,15 +26,15 @@ public interface RagMapper {
 
 
     @Delete("DELETE FROM knowledge_chunk WHERE user_id = #{userId} AND repo_name = #{repoName}")
-    int deleteByUserIdAndRepoName(@Param("userId") Long userId, @Param("repoName") String repoName);
+    int deleteChunkByUserIdAndRepoName(@Param("userId") Long userId, @Param("repoName") String repoName);
 
     // 每一行数据都会被包成一个 Map (比如: {"id": 1, "vector_data": "[0.1, 0.2]"})
     @Select("SELECT id, vector_data FROM knowledge_chunk WHERE user_id = #{userId} AND repo_name = #{repoName}")
     List<Map<String, Object>> selectRawMaps(@Param("userId") Long userId, @Param("repoName") String repoName);
 
 
-    @Delete("DELETE FROM knowledge_chunk WHERE id = #{id}")
-    int deleteAllChunkById(@Param("id") Long id);
+    @Delete("DELETE FROM knowledge_chunk WHERE id = #{id} and user_id = #{userId}")
+    int deleteChunkById(@Param("id") Long chunkId, @Param("userId") Long userId);
 
     @Select("""
         <script>
