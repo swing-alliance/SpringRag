@@ -25,6 +25,7 @@ import com.personal.main.dto.AboutChunkRequest.DeleteChunk;
 import com.personal.main.dto.AboutChunkRequest.deleterepo;
 import com.personal.main.model.UserConfig;
 import java.util.List;
+import com.personal.main.dto.AboutAiChatRoom;
 import java.util.Optional;
 @RestController
 @RequiredArgsConstructor
@@ -154,28 +155,15 @@ public class UserDo {
 
 
 
-//创建聊天室
-    @PostMapping("/api/usercreateroom")
-    public ResponseEntity<Result<String>> createroom(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody UserChatAiRequest.UserCreateRoom request) {
-        try {
-            Long userId = authService.authCookie(token);
-            Optional<List<ChatRoom>> chatRooms = aiChatRoomService.getallchatrooms(userId);
-            ChatRoom chatRoom = new ChatRoom();
-            chatRoom.setRoomName(request.roomName());
-            chatRoom.setRepoName(request.repoName());
-            chatRoom.setUserId(userId);
-            aiChatRoomService.createaichatroom(chatRoom);
-            return ResponseEntity.ok(Result.success("聊天室创建成功！","成功"));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(400).body(Result.error(400, e.getMessage()));
-        }}
+
     //删除聊天室
     @PostMapping("/api/userdeleteroom")
-    public String deleteroom(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody UserChatAiRequest.UserDeleteRoom request) {
+    public String deleteroom(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody AboutAiChatRoom.deleteroom request) {
         try {
             Long userId = authService.authCookie(token);
-            aiChatRoomService.deleteaichatroom(request.roomid(), userId);
-            return ResponseEntity.ok("聊天室删除成功！当前用户 ID: " + userId).toString();
+            Long roomId = request.roomId();
+            aiChatRoomService.deleteaichatroom(roomId, userId);
+            return ResponseEntity.ok("聊天室删除成功！" + userId).toString();
         } catch (RuntimeException e) {
             return ResponseEntity.status(400).body("聊天室删除失败: " + e.getMessage()).toString();
         }}
@@ -183,51 +171,47 @@ public class UserDo {
 
      //创建aichatroom
     @PostMapping("/api/usercreateaichatroom")
-    public ResponseEntity<Result<String>> createaichatroom(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody UserConfigRequest.CreateUserConfigRequest request) {
+    public ResponseEntity<Result<String>> createaichatroom(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody AboutAiChatRoom.createRoom request) {
         try {
-            Long userId = authService.authCookie(token);
-            userDoService.createuserconfig(userId, request.platformSource(), request.apiKey(), request.baseUrl());
-            return ResponseEntity.ok(Result.success("用户配置创建成功！ ",userId.toString()));
+            Long userId= authService.authCookie(token);
+            ChatRoom chatRoom = new ChatRoom();
+            chatRoom.setRoomName(request.roomName());
+            chatRoom.setRepoName(request.repoName());
+            aiChatRoomService.createaichatroom(chatRoom);
+            return ResponseEntity.ok(Result.success("用户创建房间成功！ ",userId.toString()));
         } catch (RuntimeException e) {
             return ResponseEntity.status(400).body(Result.error(400, e.getMessage()));
         }
     }
     //更新aichatroom
     @PostMapping("/api/userupdateaichatroom")
-    public ResponseEntity<Result<String>> updateaichatroom(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody UserConfigRequest.UpdateUserConfigRequest request) {
+    public ResponseEntity<Result<String>> updateaichatroom(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody AboutAiChatRoom.updateRoom request) {
         try {
             Long userId = authService.authCookie(token);
-            userDoService.updateuserconfig(userId, request.platformSource(), request.apiKey(), request.baseUrl(), request.isActive());
-            return ResponseEntity.ok(Result.success("用户配置更新成功！当前用户 ID: ",userId.toString()));
+            ChatRoom chatRoom = new ChatRoom();
+            chatRoom.setRoomName(request. roomName());
+            chatRoom.setRepoName(request.repoName());
+            aiChatRoomService.updateaichatroomRepo(chatRoom.getId(), userId, request.repoName());
+            return ResponseEntity.ok(Result.success("用户更新房间成功！ ",userId.toString()));
         } catch (RuntimeException e) {
             return ResponseEntity.status(400).body(Result.error(400, e.getMessage()));
-        }
+        } 
     }    
     //获取aichatroom
     @GetMapping("/api/usergetaichatroom")
-    public ResponseEntity<Result<UserConfig>> getaichatroom(@CookieValue(value = "user_session", defaultValue = "") String token) {
+    public ResponseEntity<Result<List<ChatRoom>>> getaichatroom(@CookieValue(value = "user_session", defaultValue = "") String token) {
         try {
             Long userId = authService.authCookie(token);
-            Optional<UserConfig> config = userDoService.getuserconfig(userId);
-            if (!config.isPresent()) {
-                return ResponseEntity.ok(Result.success("用户配置获取成功！",null));
+            Optional<List<ChatRoom>> chatRooms = aiChatRoomService.getallaichatrooms(userId);
+            if (!chatRooms.isPresent()) {
+                return ResponseEntity.ok(Result.success("用户！",null));
                 } else {
-                return ResponseEntity.ok(Result.success("用户配置获取成功！ ",config.get()));
+                return ResponseEntity.ok(Result.success("用户配置获取成功！ ",chatRooms.get()));
             }
         } catch (RuntimeException e) {
             return ResponseEntity.status(400).body(Result.error(400, e.getMessage()));
         }
     }
-    //删除aichatroom
-    @PostMapping("/api/userdeleteaichatroom")
-    public ResponseEntity<Result<String>> deleteaichatroom(@CookieValue(value = "user_session", defaultValue = "") String token, @RequestBody UserConfigRequest.DeleteUserConfigRequest request) {
-        try {
-            Long userId = authService.authCookie(token);
-            userDoService.deleteuserconfig(userId, request.platformSource());
-            return ResponseEntity.ok(Result.success("用户配置删除成功！",userId.toString()));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(400).body(Result.error(400, e.getMessage()));
-        }
-    }
+
 
 }

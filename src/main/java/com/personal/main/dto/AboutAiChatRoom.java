@@ -9,7 +9,7 @@ public class AboutAiChatRoom {
         Long roomId        // 对齐前端传过来的 chunkId (前端传的是 id)
     ) {}
     public record updateRoom(
-        Long roomId,  // 改为 String，单文件
+        String  roomName,  // 改为 String，单文件
         String repoName  // 改为 String，单文本块内容
     ) {}
 }

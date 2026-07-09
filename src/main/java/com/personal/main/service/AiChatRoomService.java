@@ -28,14 +28,14 @@ public class AiChatRoomService {
             throw new RuntimeException("删除聊天室失败: " + e.getMessage());
         }
     }
-    public void updatechatroomRepo(Long roomId, Long userId, String newRepoName) {
+    public void updateaichatroomRepo(Long roomId, Long userId, String newRepoName) {
         try {
             aiChatMapper.updateRoomRepo(roomId, userId, newRepoName);
         } catch (Exception e) {
             throw new RuntimeException("更新聊天室失败: " + e.getMessage());
         }
     }
-    public Optional<List<ChatRoom>> getallchatrooms(Long userId) {
+    public Optional<List<ChatRoom>> getallaichatrooms(Long userId) {
         try {
             List<ChatRoom> chatRooms = aiChatMapper.getChatRoomsById(userId);
             if (chatRooms == null || chatRooms.isEmpty()) {
