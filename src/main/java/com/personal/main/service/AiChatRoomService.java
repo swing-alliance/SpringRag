@@ -2,7 +2,7 @@ package com.personal.main.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
-
+import java.util.Optional;
 import com.personal.main.mapper.AiChatMapper;
 import com.personal.main.model.ChatMessage;
 import com.personal.main.model.ChatRoom;
@@ -35,6 +35,19 @@ public class AiChatRoomService {
             throw new RuntimeException("更新聊天室失败: " + e.getMessage());
         }
     }
+    public Optional<List<ChatRoom>> getallchatrooms(Long userId) {
+        try {
+            List<ChatRoom> chatRooms = aiChatMapper.getChatRoomsById(userId);
+            if (chatRooms == null || chatRooms.isEmpty()) {
+                return Optional.empty();
+            } else {
+                return Optional.of(chatRooms);
+            }
+        }catch (Exception e) {
+            throw new RuntimeException("获取所有聊天室失败: " + e.getMessage());
+        }
+    }
+
     public void airecordmsg(Long roomId, Long userId,String content) {
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setRoomId(roomId);
@@ -79,5 +92,8 @@ public class AiChatRoomService {
             throw new RuntimeException("获取聊天室绑定的知识库失败: " + e.getMessage());
         }
     }
+
+
+
 
 }

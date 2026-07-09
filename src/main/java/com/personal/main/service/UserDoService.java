@@ -70,14 +70,18 @@ public class UserDoService {
         }
     }
 
-    public UserConfig getuserconfig(Long userId, String platformSource) {
-        Optional<UserConfig> existingConfig = userMapper.selectUserConfigByUserIdAndPlatformSource(userId, platformSource);
-        if (existingConfig.isPresent()) {
-            UserConfig config = existingConfig.get();
-            return config;
+    public Optional<UserConfig> getuserconfig(Long userId) {
+        Optional<UserConfig> existingConfig = userMapper.selectUserConfigByUserId(userId);
+            try{
+                if (existingConfig.isPresent()) {
+            return existingConfig;
         } else {
-            throw new RuntimeException("配置不存在！");
+            Optional<UserConfig> nullUerConfig = Optional.empty();
+            return nullUerConfig;
         }
+            }catch(Exception e){
+                throw new RuntimeException("mapper层错误，获取配置失败！");
+            }
     }
 
     public void deleteuserconfig(Long userId, String platformSource) {

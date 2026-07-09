@@ -9,7 +9,7 @@ import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
-
+import java.util.Optional;
 import com.personal.main.model.ChatMessage;
 import com.personal.main.model.ChatRoom;
 @Mapper
@@ -99,6 +99,8 @@ public interface AiChatMapper {
     String getRepoNameByRoomId(@Param("roomId") Long roomId, @Param("userId") Long userId);
 
 
+    @Select("SELECT * FROM chat_room WHERE user_id = #{userId}")
+        List<ChatRoom> getChatRoomsById(@Param("userId") Long userId);
         
 
 }

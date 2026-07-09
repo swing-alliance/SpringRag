@@ -33,6 +33,9 @@ public interface UserMapper {
             @Param("platformSource") String platformSource
     );
 
+    @Select("SELECT * FROM user_config WHERE user_id = #{userId}")
+    Optional<UserConfig> selectUserConfigByUserId(Long userId);
+
     /**
      * 2. 创建配置
      * useGeneratedKeys = true 会把自增的 id 自动回填到 userConfig 对象中
