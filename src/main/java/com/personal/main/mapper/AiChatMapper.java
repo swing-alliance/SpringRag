@@ -18,8 +18,8 @@ public interface AiChatMapper {
     /**
      * 创建聊天室（因为加了唯一索引，如果名字重复，这里会抛出 DataIntegrityViolationException 异常）
      */
-    @Insert("INSERT INTO chat_room (user_id, room_name, repo_name) " +
-            "VALUES (#{userId}, #{roomName}, #{repoName})")
+    @Insert("INSERT INTO chat_room (user_id, room_name, repo_name, platform_source) " +
+            "VALUES (#{userId}, #{roomName}, #{repoName},#{platformSource})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int createRoom(ChatRoom chatRoom);
 
@@ -34,11 +34,16 @@ public interface AiChatMapper {
     /**
      * 修改指定聊天室绑定的 RAG 知识库 (repo_name)
      */
-    @Update("UPDATE chat_room SET repo_name = #{repoName} " +
-            "WHERE id = #{roomId} AND user_id = #{userId}")
-    int updateRoomRepo(@Param("roomId") Long roomId, 
-                       @Param("userId") Long userId, 
-                       @Param("repoName") String repoName);
+    @Update("UPDATE chat_room " +
+                "SET repo_name = #{repoName}, " +
+                "    room_name = #{roomName}, " +
+                "    platform_source = #{platformSource} " +
+                "WHERE id = #{roomId} AND user_id = #{userId}")
+        int updateRoomRepo(@Param("roomId") Long roomId,
+                        @Param("userId") Long userId,
+                        @Param("repoName") String repoName,
+                        @Param("roomName") String roomName,
+                        @Param("platformSource") String platformSource);
 
     /**
      * 修改聊天室的名字 (room_name)
@@ -86,8 +91,8 @@ public interface AiChatMapper {
      * 加载聊天历史记录（按时间正序排列）
      */
     @Select("SELECT id, room_id, user_id, sender_type, content, create_time " +
-            "FROM chat_message WHERE room_id = #{roomId} ORDER BY create_time ASC")
-    List<ChatMessage> listMessagesByRoomId(@Param("roomId") Long roomId);
+            "FROM chat_message WHERE room_id = #{roomId} and user_id = #{userId} ORDER BY create_time ASC")
+    List<ChatMessage> listMessagesByRoomId(@Param("roomId") Long roomId, @Param("userId") Long userId);
 
 
 

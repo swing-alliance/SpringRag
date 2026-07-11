@@ -14,6 +14,7 @@ public class ChatRoom {
     private Long userId;
     private String roomName;
     private String repoName;
+    private String platformSource; // API来源，如 DeepSeek 或 OpenAI
     private Date createTime;
     private Date updateTime;
     public Long getId() { return id; }
@@ -28,4 +29,6 @@ public class ChatRoom {
     public void setCreateTime(Date createTime) { this.createTime = createTime; }
     public Date getUpdateTime() { return updateTime; }
     public void setUpdateTime(Date updateTime) { this.updateTime = updateTime; }
+    public String getPlatformSource() { return platformSource; }
+    public void setPlatformSource(String platformSource) { this.platformSource = platformSource; }
 }

@@ -70,15 +70,14 @@ public class UserDoService {
         }
     }
 
-    public Optional<UserConfig> getuserconfig(Long userId) {
-        Optional<UserConfig> existingConfig = userMapper.selectUserConfigByUserId(userId);
+    public List<UserConfig> getuserconfig(Long userId) {
             try{
-                if (existingConfig.isPresent()) {
-            return existingConfig;
-        } else {
-            Optional<UserConfig> nullUerConfig = Optional.empty();
-            return nullUerConfig;
-        }
+                List<UserConfig> existingConfig = userMapper.selectUserConfigByUserId(userId);
+                if (existingConfig.size() > 0) {
+                    return existingConfig;
+                }else {
+                    return null;
+                }
             }catch(Exception e){
                 throw new RuntimeException("mapper层错误，获取配置失败！");
             }

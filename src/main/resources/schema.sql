@@ -38,13 +38,12 @@ CREATE TABLE `user_config` (
 CREATE TABLE `chat_room` (
     `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '聊天室主键ID',
     `user_id` BIGINT NOT NULL COMMENT '创建该聊天室的用户ID',
+    `platform_source` VARCHAR(32) NOT NULL COMMENT 'API来源只能为DeepSeek或者OpenAI',
     `room_name` VARCHAR(100) NOT NULL COMMENT '聊天室名称',
     `repo_name` VARCHAR(100) NOT NULL COMMENT '当前绑定的RAG知识库/文档名称',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间（如修改知识库或房间名）',
-    -- 普通索引
-    INDEX `idx_user_id` (`user_id`) COMMENT '方便查询用户的所有聊天室',
-    -- 添加指向 users 表的外键约束
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    INDEX `idx_user_id` (`user_id`),
     CONSTRAINT `fk_chat_room_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='聊天室表';
 

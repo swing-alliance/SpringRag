@@ -9,7 +9,7 @@ import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
-
+import java.util.List;
 import com.personal.main.model.User;
 import com.personal.main.model.UserConfig;
 @Mapper
@@ -34,7 +34,7 @@ public interface UserMapper {
     );
 
     @Select("SELECT * FROM user_config WHERE user_id = #{userId}")
-    Optional<UserConfig> selectUserConfigByUserId(Long userId);
+List<UserConfig> selectUserConfigByUserId(Long userId);
 
     /**
      * 2. 创建配置

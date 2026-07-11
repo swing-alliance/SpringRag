@@ -13,9 +13,12 @@ import com.personal.main.service.AiChatRoomService;
 import com.personal.main.service.AuthService;
 import com.personal.main.service.DeepSeekService;
 import com.personal.main.service.RagService;
-
+import com.personal.main.common.Result;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
+import com.personal.main.model.ChatMessage;
+import org.springframework.http.ResponseEntity;
+import com.personal.main.model.ChatRoom;
 
 @RestController
 @RequiredArgsConstructor
@@ -31,15 +34,17 @@ public class DeepSeek {
             @RequestBody UserChatAiRequest.UserChatAi request) {
         try {
             Long userId = authService.authCookie(token); // 验证用户身份
-            String apiSource = request.apisource();
+            Long roomid = request.roomid();
+            ChatRoom room = aiChatRoomService.getaichatroominfo(roomid, userId); // 获取当前房间信息
+            String apiSource = room.getPlatformSource(); 
             String apiKey = authService.getUserConfigApiKey(userId, apiSource); // 根据用户ID和API来源获取API Key
             String reponame = aiChatRoomService.getRepoNameByRoomId(request.roomid(), userId); // 获取当前房间绑定的知识库名称
             Boolean userag = request.userag();
-            Long roomid = request.roomid();
+           
             String systemMessage = request.systemMessage();
             float referratio = request.referratio();
             String message = request.message();
-            String context = aiChatRoomService.getHisChatMassageByRoomId(roomid); // 获取当前房间的历史对话上下文
+            String context = aiChatRoomService.getHisChatMassageByRoomId(roomid, userId); // 获取当前房间的历史对话上下文
             
             // 向量检索获取相似度 Map 
             Map<Long, Float> refercontextmap = ragService.getIndexMap(message, userId, reponame, referratio);
@@ -82,4 +87,19 @@ public class DeepSeek {
             System.err.println("\n[AI STREAM ASSEMBLY ERROR]: " + e.getMessage());
             return Flux.just("Error: " + e.getMessage());
         }}
+
+
+
+        @PostMapping("/api/roommsg")
+        public ResponseEntity<Result<List<ChatMessage>>> getRoomMsg(
+                @CookieValue(value = "user_session", defaultValue = "") String token,
+                @RequestBody UserChatAiRequest.UserChatAi request) {
+            try {
+                Long userId = authService.authCookie(token); // 验证用户身份
+                Long roomId = request.roomid();
+               List<ChatMessage> context = aiChatRoomService.getHisChatMsgByRoomId(roomId, userId); // 获取当前房间的历史对话上下文
+                return ResponseEntity.ok(Result.success(context));
+            } catch (RuntimeException e) {
+                return ResponseEntity.status(400).body(Result.error(400, e.getMessage()));
+            }}
 }
