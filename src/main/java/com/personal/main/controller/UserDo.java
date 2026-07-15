@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.personal.main.common.Result;
-import com.personal.main.dto.CreateChunkRequest;
+
 import com.personal.main.dto.UserChatAiRequest;
 import com.personal.main.dto.UserConfigRequest;
 import com.personal.main.model.ChatRoom;

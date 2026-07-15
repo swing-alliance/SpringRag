@@ -19,6 +19,7 @@ import reactor.core.publisher.Flux;
 import com.personal.main.model.ChatMessage;
 import org.springframework.http.ResponseEntity;
 import com.personal.main.model.ChatRoom;
+import com.personal.main.service.ClusterIndexChunkService;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,6 +29,9 @@ public class DeepSeek {
     private final AuthService authService;
     private final RagService ragService;
     private final AiChatRoomService aiChatRoomService;
+    private final ClusterIndexChunkService clusterIndexChunkService;
+
+
     @PostMapping(value = "/api/airesponse", produces = "text/event-stream;charset=UTF-8")
     public Flux<String> streamChat(
             @CookieValue(value = "user_session", defaultValue = "") String token,
@@ -47,6 +51,8 @@ public class DeepSeek {
             String context = aiChatRoomService.getHisChatMassageByRoomId(roomid, userId); // 获取当前房间的历史对话上下文
             
             // 向量检索获取相似度 Map 
+            Long mostRelatedClusterId = clusterIndexChunkService.getmostrelatecluster(userId, reponame, message);
+            System.out.println("最相关的簇id " + mostRelatedClusterId);
             Map<Long, Float> refercontextmap = ragService.getIndexMap(message, userId, reponame, referratio);
             List<Long> refercontextids = refercontextmap.keySet().stream().toList();
             String refercontext = ragService.getKnowledgeContentByIds(refercontextids);

@@ -43,6 +43,8 @@ public class RagService {
             ragMapper.insertKnowledgeChunk(chunk);
         }
     }
+
+    //获得相应reponame下referratio参考率，和question相似度最高的几个chunkid
     public Map<Long, Float> getIndexMap(String question, Long userId, String repoName, Float referratio) {
     List<Float> q_vector = embeddingService.getEmbedding(question, true);
     List<Map<String, Object>> chunks = ragMapper.selectRawMaps(userId, repoName);
@@ -91,7 +93,7 @@ public class RagService {
 
     public List<KnowledgeChunk> getChunksById(Long userId)
     {
-        return ragMapper.getChunksById(userId);
+        return ragMapper.getChunksByUserId(userId);
     }
 
 
@@ -107,5 +109,9 @@ public class RagService {
             throw new RuntimeException("更新chunk失败", e);
         }
     }
+
+
+    public List<KnowledgeChunk> getChunks(List<Long> chunkIds) {
+        return ragMapper.selectChunksByIds(chunkIds);}
 
 }

@@ -14,13 +14,14 @@ CREATE TABLE `knowledge_chunk` (
   `user_id` bigint NOT NULL COMMENT '关联的用户ID',
   `file_name` varchar(100) NOT NULL COMMENT '源文件名，如 核心人员画像——张三.md',
   `content` text NOT NULL COMMENT '文本块的具体内容',
+  `cluster_id` bigint DEFAULT NULL COMMENT '关联的簇ID',
   `vector_data` JSON NOT NULL COMMENT 'file_name结果Embedding 后的向量数据，暂时以 JSON 字符串或 Text 存储',
   `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  -- 添加普通索引提升查询效率
   KEY `idx_user_id` (`user_id`),
-  -- 添加外键约束（可选，推荐在物理表或逻辑层面建立关联）
-  CONSTRAINT `fk_knowledge_chunk_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+  CONSTRAINT `fk_knowledge_chunk_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  KEY `idx_cluster_id` (`cluster_id`),
+  KEY `idx_user_repo_cluster` (`user_id`, `repo_name`, `cluster_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 -- 创建 user_config 表
 CREATE TABLE `user_config` (
@@ -64,3 +65,14 @@ CREATE TABLE `chat_message` (
     -- 添加指向 users 表的外键约束
     CONSTRAINT `fk_chat_message_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='人机聊天记录表';
+
+
+
+CREATE TABLE `ClusterIndexChunk` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    `user_id` BIGINT NOT NULL COMMENT '关联的用户ID',
+    `repo_name` VARCHAR(100) NOT NULL COMMENT '绑定知识库名称',
+    `vector_data` JSON NOT NULL COMMENT '这个簇中心的向量数据',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_user_repo` (`user_id`, `repo_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
